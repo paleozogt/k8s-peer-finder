@@ -12,22 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-all: push
+all: container
 
 TAG = 0.1
-PREFIX = staging-k8s.gcr.io/peer-finder
+PREFIX = paleozogt/k8s-peer-finder
 
 server: peer-finder.go
 	CGO_ENABLED=0 go build -a -installsuffix cgo --ldflags '-w' ./peer-finder.go
 
-release: server
-	gsutil cp peer-finder gs://kubernetes-release/pets/peer-finder
-
-container: server
-	docker build --pull -t $(PREFIX):$(TAG) .
-
-push: container
-	gcloud docker -- push $(PREFIX):$(TAG)
+container:
+	docker buildx build --push --platform linux/amd64,linux/arm64,linux/arm,linux/ppc64le,linux/s390x -t $(PREFIX):$(TAG) .
 
 clean:
 	rm -f peer-finder
